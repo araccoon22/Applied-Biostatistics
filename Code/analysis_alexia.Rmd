@@ -8,12 +8,18 @@ date: "2024-03-18"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Dataset:  potato.dat
+#### Introduction
 
-Source: A. Mackey and J. Stockman (1958). "Cooking Quality of Oregon-Grown
+
+**Goal**: You should model the **Flavor score** as a function of the explanatory factors
+(i.e. leave out Texture score and Moistness score)
+
+**Dataset**:  potato.dat
+
+**Source**: A. Mackey and J. Stockman (1958). "Cooking Quality of Oregon-Grown
 Russet Potatoes", American Potato Journal, Vol.35, pp395-407
 
-Description: Texture, Flavor, and Moistness Scores for potatoes
+**Description**: Texture, Flavor, and Moistness Scores for potatoes
 of 2 sizes, from two areas, two holding temps, 4 holding periods,
 and 5 cooking methods. Each score is an average of 20 scores 
 (5 judges x 4 replications).
@@ -28,3 +34,61 @@ Cooking method  40 /* 1=Boil, 2=Steam, 3=Mash, 4=Bake@350, 5=Bake@450  */
 Texture score  46-48
 Flavor score   54-56
 Moistness score  62-64
+
+
+
+#### Importing the dataset from URL:
+
+```{r} 
+
+url <- "http://users.stat.ufl.edu/~winner/data/potato.dat"
+potato_data <- read.table(url, header = FALSE)
+
+colnames(potato_data) <- c("Growing_Area", "Temperature", "Size", "Storage_period", "Cooking_Method", "Texture", "Flavor", "Moistness")
+
+potato_data <- potato_data[, !colnames(potato_data) %in% c("Texture", "Moistness")]
+
+potato_data
+
+
+
+```
+#### Pre analysis to choose the regression model
+
+
+```{r}
+
+#overall mean
+mean_flavor_overall <- mean(potato_data$Flavor)
+cat("Mean flavor score overall:", mean_flavor_overall, "\n")
+
+#Compute the mean flavor score for each different area
+mean_flavor_area <- tapply(potato_data$Flavor, potato_data$Growing_Area, mean)
+cat("Mean flavor score for each area:\n")
+print(mean_flavor_area)
+
+# 3. Compute the mean flavor score for each temperature
+mean_flavor_temperature <- tapply(potato_data$Flavor, potato_data$Temperature, mean)
+cat("Mean flavor score for each temperature:\n")
+print(mean_flavor_temperature)
+
+
+#overall standard deviation:
+
+sd_flavor_overall <- sd(potato_data$Flavor)
+cat("Standard deviation flavor score overall:", sd_flavor_overall, "\n")
+
+#Compute the sd flavor score for each different area
+sd_flavor_area <- tapply(potato_data$Flavor, potato_data$Growing_Area, sd)
+cat("Standard deviation flavor score for each area:\n")
+print(sd_flavor_area)
+
+# 3. Compute the mean flavor score for each temperature
+sd_flavor_temperature <- tapply(potato_data$Flavor, potato_data$Temperature, sd)
+cat("Standard deviation flavor score for each temperature:\n")
+print(sd_flavor_temperature)
+
+
+```
+
+
