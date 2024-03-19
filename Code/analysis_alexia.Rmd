@@ -123,6 +123,7 @@ where the covariate are indicator variables.
 
 ```{r}
 
+
 flavor.aov <- aov(Flavor ~ Storage_period*Cooking_Method, data=potato_data) 
 #weightgain = intercept + b1 * Storage_period + b2 * Cooking_Method + b3*Storage_period*Cooking_Method
 
