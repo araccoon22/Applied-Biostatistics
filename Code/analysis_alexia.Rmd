@@ -8,7 +8,7 @@ date: "2024-03-18"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#### Introduction
+#### *Introduction*
 
 
 **Goal**: You should model the **Flavor score** as a function of the explanatory factors
@@ -37,7 +37,7 @@ Moistness score  62-64
 
 
 
-#### Importing the dataset from URL:
+#### *Importing the dataset from URL*
 
 ```{r} 
 
@@ -48,19 +48,21 @@ colnames(potato_data) <- c("Growing_Area", "Temperature", "Size", "Storage_perio
 
 potato_data <- potato_data[, !colnames(potato_data) %in% c("Texture", "Moistness")]
 
+
 potato_data
 
 
 
 ```
-#### Pre analysis to choose the regression model
+#### *Pre analysis to choose the regression model*
 
 
 ```{r}
 
+
 #overall mean
-mean_flavor_overall <- mean(potato_data$Flavor)
-cat("Mean flavor score overall:", mean_flavor_overall, "\n")
+overall_mean_flavor <- mean(potato_data$Flavor)
+cat("Mean flavor score overall:", overall_mean_flavor, "\n")
 
 #Compute the mean flavor score for each different area
 mean_flavor_area <- tapply(potato_data$Flavor, potato_data$Growing_Area, mean)
@@ -89,6 +91,50 @@ cat("Standard deviation flavor score for each temperature:\n")
 print(sd_flavor_temperature)
 
 
+#Some boxplots (we only have discrete variables except the Flavor Score)
+
+layout(matrix(1:6, nrow = 2, byrow = TRUE)) #permet d'afficher les prochains plots dans un "tableau" 1 row, 2 columns)
+
+boxplot(Flavor ~ Growing_Area, data = potato_data, names = c("Southern", "Central"), ylab = "Flavor Score", xlab = "Growing Area")
+abline(h = overall_mean_flavor, col = "red", lty = 2)
+
+boxplot(Flavor ~ Temperature, data = potato_data, names = c("75F", "40F"), ylab = "Flavor Score", xlab = "Holding Temperature")
+abline(h = overall_mean_flavor, col = "red", lty = 2)
+
+boxplot(Flavor ~ Size, data = potato_data, names = c("medium", "big"), ylab = "Flavor Score", xlab = "Size")
+abline(h = overall_mean_flavor, col = "red", lty = 2)
+
+boxplot(Flavor ~ Storage_period, data = potato_data, names = c("0", "2", "4", "6"), ylab = "Flavor Score", xlab = "Storage Period (in months)")
+abline(h = overall_mean_flavor, col = "red", lty = 2)
+
+boxplot(Flavor ~ Cooking_Method, data = potato_data, names = c("Boil", "Steam", "Mash", "Bake 350F", "Bake 450F"), ylab = "Flavor Score", xlab = "Cooking Method")
+abline(h = overall_mean_flavor, col = "red", lty = 2)
+
 ```
+Seems that the size of the potato does not affect the Flavor score (mean doesn't change much). We suspect that there is interaction between the Storage Period and the cooking method, so we might want to include it into our regression Model.
+
+#### *Fitting an ANOVA model*
+
+In this case, the regression model has the formula:
+
+<p style="text-align: center;"> Weightgain = $\beta_0$ + $\beta_1 \cdot$ sourceCereal + $\beta_2 \cdot$ typeLow +$\beta_3 \cdot$ sourceCereal $\cdot$ typeLow</p>
+
+where the covariate are indicator variables.
+
+```{r}
+
+flavor.aov <- aov(Flavor ~ Storage_period*Cooking_Method, data=potato_data) 
+#weightgain = intercept + b1 * Storage_period + b2 * Cooking_Method + b3*Storage_period*Cooking_Method
+
+summary(flavor.aov)
+
+coef(flavor.aov)
+
+layout(matrix(1:4,ncol=2))
+plot(flavor.aov)
+
+
+```
+
 
 
