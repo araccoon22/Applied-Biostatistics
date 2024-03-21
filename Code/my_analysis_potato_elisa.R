@@ -23,9 +23,14 @@ tapply(potato$Flavor, list(potato$Area, potato$Temperature, potato$Size, potato$
 plot.design(potato)
 
 
-anova <- aov(Flavor ~ Cooking*Storage, data=potato)
-summary(anova)
+anova1 <- aov(Flavor ~ Cooking*Storage + Temperature*Storage + Area*Storage, data=potato)
+anova2 <- aov(Flavor ~ Cooking*Storage*Temperature*Area, data=potato)
+anova3 <- aov(Flavor ~ Cooking+Storage+Temperature+Area + Size, data=potato)
+
+summary(anova1)
+
 coef(anova)
 options("contrasts")
 levels(potato$Cooking)
 levels(potato$Storage)
+
