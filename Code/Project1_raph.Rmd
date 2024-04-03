@@ -1,0 +1,83 @@
+---
+title: "Potato_analysis_raph"
+output: html_document
+date: "2024-03-20"
+---
+
+# Load potato data
+```{r}
+# Read text file
+data <- read.table("http://users.stat.ufl.edu/~winner/data/potato.dat", header = FALSE)
+
+# Assign column names
+colnames(data) <- c("Growing_Area", "Temperature", "Size", "Storage_period", "Cooking_Method", "Texture", "Flavor", "Moistness")
+
+# Visualize data
+data
+```
+# Boxplots
+```{r}
+# Create boxplots for each variable based on flavor
+layout(matrix(1:6, nrow = 2, byrow = TRUE))
+
+boxplot(Flavor ~ Growing_Area, data = data, names = c("Southern", "Central"), ylab = "Flavor Score", xlab = "Growing Area")
+abline(h = mean(data$Flavor), col = "red", lty = 2)
+
+boxplot(Flavor ~ Temperature, data = data, names = c("75F", "40F"), ylab = "Flavor Score", xlab = "Holding Temperature")
+abline(h = mean(data$Flavor), col = "red", lty = 2)
+
+boxplot(Flavor ~ Size, data = data, names = c("medium", "big"), ylab = "Flavor Score", xlab = "Size")
+abline(h = mean(data$Flavor), col = "red", lty = 2)
+
+boxplot(Flavor ~ Storage_period, data = data, names = c("0", "2", "4", "6"), ylab = "Flavor Score", xlab = "Storage Period (in months)")
+abline(h = mean(data$Flavor), col = "red", lty = 2)
+
+boxplot(Flavor ~ Cooking_Method, data = data, names = c("Boil", "Steam", "Mash", "Bake 350F", "Bake 450F"), ylab = "Flavor Score", xlab = "Cooking Method")
+abline(h = mean(data$Flavor), col = "red", lty = 2)
+
+```
+Based on the boxplots, we observe the most difference in means for the Storage period and the Cooking method.
+
+# Fit ANOVA model
+```{r} 
+# ANOVA model with 2 predictors
+storage.aov <- aov( Flavor ~ Storage_period, data=data)
+sum.aov <- aov( Flavor ~ Storage_period+Cooking_Method, data=data)
+product.aov <- aov( Flavor ~ Storage_period*Cooking_Method, data=data)
+
+# Summary and model coefficients
+summary(storage.aov)
+coef(storage.aov)
+
+summary(sum.aov)
+coef(sum.aov)
+
+summary(product.aov)
+coef(product.aov)
+
+```
+# Interpretation of model coefficients
+For these models, the Cooking method doesn't have a significant p-value. We can't reject the null hypothesis, which means the difference in means observed can't be attributed to a significant relationship between the cooking method and the flavor.
+
+However, the Storage period is significant. To have a better idea whether a simple model using this variable would be sufficient or if other predictors would make a better model, we can try using stepwise selection.
+
+```{r}
+step <- step(aov( Flavor ~ Storage_period + Cooking_Method + Growing_Area + Temperature + Size, data=data))
+```
+From this selection the best model would be modelling the Flavor as a sum if the Storage_period, Growing_Area and Temperature
+```{r}
+best.aov <- aov( Flavor ~ Storage_period + Growing_Area + Temperature, data=data)
+
+summary(best.aov)
+coef(best.aov)
+```
+Indeed, all predictors used show significant relationship to the Flavor.
+
+# Model assessment
+To assess the validity of the model, we observe the residuals and QQ plots
+```{r}
+# Residuals and QQ plots
+layout(matrix(1:4,ncol=2))
+plot(best.aov)
+```
+QQ plot shows mostly a linear relationship between standardized and QQ residuals, with some differences at the extremities but reasonably enough to assume gaussianity and homoscedasticity in this model.
