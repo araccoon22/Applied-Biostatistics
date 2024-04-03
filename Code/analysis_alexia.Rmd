@@ -48,6 +48,20 @@ colnames(potato_data) <- c("Growing_Area", "Temperature", "Size", "Storage_perio
 
 potato_data <- potato_data[, !colnames(potato_data) %in% c("Texture", "Moistness")]
 
+#Transforming into factors 
+
+potato_data$Growing_Area <- factor(potato_data$Growing_Area)
+potato_data$Temperature <- factor(potato_data$Temperature)
+potato_data$Size <- factor(potato_data$Size)
+
+potato_data$Storage_period <- factor(potato_data$Storage_period, levels = c(1, 2, 3, 4),  ordered = TRUE) #set storage period to different levels, ordered because time period
+
+levels(potato_data$Storage_period) <- c("0", "2", "4", "6")
+levels(potato_data$Cooking_Method) <- c("Boil", "Steam", "Mash", "Bake_350", "Bake_450")
+
+potato_data$Cooking_Method <- factor(potato_data$Cooking_Method, levels = c(1, 2, 3, 4,5))
+#set cooking method to different levels, not ordered
+
 
 potato_data
 
@@ -110,6 +124,9 @@ abline(h = overall_mean_flavor, col = "red", lty = 2)
 boxplot(Flavor ~ Cooking_Method, data = potato_data, names = c("Boil", "Steam", "Mash", "Bake 350F", "Bake 450F"), ylab = "Flavor Score", xlab = "Cooking Method")
 abline(h = overall_mean_flavor, col = "red", lty = 2)
 
+layout(matrix(1:1, nrow = 1, byrow = TRUE)) #Retour à un seul plot
+
+interaction.plot(potato_data$Storage_period, potato_data$Cooking_Method, potato_data$Flavor,trace.label = "Cooking Method", xlab = "Storage Period (Month)", ylab = "Flavor Score")
 ```
 Seems that the size of the potato does not affect the Flavor score (mean doesn't change much). We suspect that there is interaction between the Storage Period and the cooking method, so we might want to include it into our regression Model.
 
@@ -135,7 +152,9 @@ layout(matrix(1:4,ncol=2))
 plot(flavor.aov)
 
 
+
+
 ```
 
-
+Checker lab 2 pour interprétation des plots de fin
 
