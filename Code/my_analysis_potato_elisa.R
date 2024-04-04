@@ -19,15 +19,13 @@ potato$Storage <- factor(potato$Storage, levels = c(1, 2, 3, 4),  ordered = TRUE
 potato$Cooking <- factor(potato$Cooking, levels = c(1, 2, 3, 4,5))
 
 
-tapply(potato$Flavor, list(potato$Area, potato$Temperature, potato$Size, potato$Storage, potato$Cooking), mean)
+#tapply(potato$Flavor, list(potato$Area, potato$Temperature, potato$Size, potato$Storage, potato$Cooking), mean)
 plot.design(potato)
 
 
-anova1 <- aov(Flavor ~ Cooking*Storage + Temperature*Storage + Area*Storage, data=potato)
-anova2 <- aov(Flavor ~ Cooking*Storage*Temperature*Area, data=potato)
-anova3 <- aov(Flavor ~ Cooking+Storage+Temperature+Area + Size, data=potato)
+anova <- aov(Flavor ~ Cooking*Storage + Temperature*Storage + Area*Storage + Cooking*Temperature + Cooking*Area + Area*Temperature, data=potato)
 
-summary(anova1)
+summary(anova)
 
 coef(anova)
 options("contrasts")
