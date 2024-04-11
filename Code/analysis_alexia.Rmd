@@ -121,10 +121,16 @@ abline(h = overall_mean_flavor, col = "red", lty = 2)
 boxplot(Flavor ~ Storage_period, data = potato_data, names = c("0", "2", "4", "6"), ylab = "Flavor Score", xlab = "Storage Period (in months)")
 abline(h = overall_mean_flavor, col = "red", lty = 2)
 
-boxplot(Flavor ~ Cooking_Method, data = potato_data, names = c("Boil", "Steam", "Mash", "Bake 350F", "Bake 450F"), ylab = "Flavor Score", xlab = "Cooking Method")
-abline(h = overall_mean_flavor, col = "red", lty = 2)
+overall_median_flavor <- median(potato_data$Flavor)
+
+cooking_methods_names = c("Boil", "Steam", "Mash", "Bake 350F", "Bake 450F")
+
+boxplot(Flavor ~ Cooking_Method, data = potato_data, names = cooking_methods_names, ylab = "Flavor Score", xlab = "Cooking Method")
+abline(h = overall_median_flavor, col = "red", lty = 2)
 
 layout(matrix(1:1, nrow = 1, byrow = TRUE)) #Retour à un seul plot
+
+
 
 interaction.plot(potato_data$Storage_period, potato_data$Cooking_Method, potato_data$Flavor,trace.label = "Cooking Method", xlab = "Storage Period (Month)", ylab = "Flavor Score")
 ```
@@ -142,15 +148,15 @@ where the covariate are indicator variables.
 
 
 flavor.aov <- aov(Flavor ~ Storage_period*Cooking_Method, data=potato_data) 
-#weightgain = intercept + b1 * Storage_period + b2 * Cooking_Method + b3*Storage_period*Cooking_Method
 
-summary(flavor.aov)
+flavor_1.aov <- aov(Flavor ~ Growing_Area + Cooking_Method*Storage_period + Temperature*Storage_period + Cooking_Method*Temperature, data=potato_data) 
 
-coef(flavor.aov)
+summary(flavor_1.aov)
 
-layout(matrix(1:4,ncol=2))
-plot(flavor.aov)
+coef(flavor_1.aov)
 
+layout(matrix(1:6,ncol=3)) 
+plot(flavor_1.aov, which=c(1,2,3,4,5,6))
 
 
 
