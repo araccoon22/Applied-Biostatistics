@@ -21,13 +21,13 @@ potato$Size <- factor(potato$Size)
 levels(potato$Size) <- c("Large", "Medium")
 
 potato$Storage <- factor(potato$Storage, levels = c(1, 2, 3, 4),  ordered = TRUE)
-levels(potato$Storage) <- c("0mth", "2mth", "4mth", "6mth")
+levels(potato$Storage) <- c("0m", "2m", "4m", "6m")
 
 
 potato$Cooking <- factor(potato$Cooking, levels = c(1, 2, 3, 4,5))
-levels(potato$Cooking) <- c("Boil", "Steam", "Mash", "350°F", "450°F")
+levels(potato$Cooking) <- c("B", "S", "M", "350", "450")
 
-
+options(digits=5)
 anova <- aov(Flavor ~ Cooking*Storage + Temperature*Storage + Area*Storage + Cooking*Temperature + Cooking*Area + Area*Temperature, data=potato)
 
 summary(anova)
@@ -37,10 +37,13 @@ options("contrasts")
 levels(potato$Cooking)
 levels(potato$Storage)
 
+par(mfrow = c(1, 2))
 
 tukey_Storage <- TukeyHSD(anova, "Storage")
 tukey_Storage
 plot(tukey_Storage)
+#title( main = "Tukey test for Storage")
+
 #for the comparison between "2mth" and "0mth" storage durations, 
 # the mean Flavor score for "2mth" storage is 0.2200 higher than for "0mth" storage.
 #p-value of 0.0000112, which is less than the significance level (usually 0.05). 
@@ -55,7 +58,7 @@ plot(tukey_Storage)
 
 tukey_Temperature <- TukeyHSD(anova, "Temperature")
 tukey_Temperature
-plot(tukey_Temperature)
+plot(tukey_Temperature, main = "Tukey test for Temperature")
 # the mean Flavor score for "40F" temperature is 0.165 lower than for "75F" temperature.
 
 tukey_Cooking <- TukeyHSD(anova, "Cooking")
@@ -67,6 +70,6 @@ plot(tukey_Cooking)
 
 tukey_Area <- TukeyHSD(anova, "Area")
 tukey_Area
-plot(tukey_Area)
+plot(tukey_Area,  main = "Tukey test for Area")
 #Mean flavor score for "Central" is significantly higher than "Southern".
 
