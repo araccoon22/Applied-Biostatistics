@@ -1,0 +1,155 @@
+---
+title: "A potato Analysis"
+output: html_document
+date: "2024-03-18"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Dataset
+
+```{r} 
+url <- "http://users.stat.ufl.edu/~winner/data/potato.dat"
+potato_data <- read.table(url, header = FALSE)
+
+colnames(potato_data) <- c("Growing_Area", "Temperature", "Size", "Storage_period", "Cooking_Method", "Texture", "Flavor", "Moistness")
+
+potato_data <- potato_data[, !colnames(potato_data) %in% c("Texture", "Moistness")]
+
+# Transforming into factors 
+
+potato_data$Growing_Area <- factor(potato_data$Growing_Area)
+potato_data$Temperature <- factor(potato_data$Temperature)
+potato_data$Size <- factor(potato_data$Size)
+
+potato_data$Storage_period <- factor(potato_data$Storage_period, levels = c(1, 2, 3, 4),  ordered = TRUE) #set storage period to different levels, ordered because time period
+
+levels(potato_data$Storage_period) <- c("0", "2", "4", "6")
+levels(potato_data$Cooking_Method) <- c("Boil", "Steam", "Mash", "Bake_350", "Bake_450")
+
+potato_data$Cooking_Method <- factor(potato_data$Cooking_Method, levels = c(1, 2, 3, 4,5))
+
+str(potato_data)
+```
+# Exploratory Data Analysis
+
+```{r}
+#overall mean
+overall_mean_flavor <- mean(potato_data$Flavor)
+cat("Mean flavor score overall:", overall_mean_flavor, "\n")
+
+#Compute the mean flavor score for each different area
+mean_flavor_area <- tapply(potato_data$Flavor, potato_data$Growing_Area, mean)
+cat("Mean flavor score for each area:\n")
+print(mean_flavor_area)
+
+# 3. Compute the mean flavor score for each temperature
+mean_flavor_temperature <- tapply(potato_data$Flavor, potato_data$Temperature, mean)
+cat("Mean flavor score for each temperature:\n")
+print(mean_flavor_temperature)
+
+
+#overall standard deviation:
+
+sd_flavor_overall <- sd(potato_data$Flavor)
+cat("Standard deviation flavor score overall:", sd_flavor_overall, "\n")
+
+#Compute the sd flavor score for each different area
+sd_flavor_area <- tapply(potato_data$Flavor, potato_data$Growing_Area, sd)
+cat("Standard deviation flavor score for each area:\n")
+print(sd_flavor_area)
+
+# 3. Compute the mean flavor score for each temperature
+sd_flavor_temperature <- tapply(potato_data$Flavor, potato_data$Temperature, sd)
+cat("Standard deviation flavor score for each temperature:\n")
+print(sd_flavor_temperature)
+
+
+#Some boxplots (we only have discrete variables except the Flavor Score)
+
+layout(matrix(1:6, nrow = 2, byrow = TRUE)) #permet d'afficher les prochains plots dans un "tableau" 1 row, 2 columns)
+
+boxplot(Flavor ~ Growing_Area, data = potato_data, names = c("Southern", "Central"), ylab = "Flavor Score", xlab = "Growing Area")
+abline(h = overall_mean_flavor, col = "red", lty = 2)
+
+boxplot(Flavor ~ Temperature, data = potato_data, names = c("75F", "40F"), ylab = "Flavor Score", xlab = "Holding Temperature")
+abline(h = overall_mean_flavor, col = "red", lty = 2)
+
+boxplot(Flavor ~ Size, data = potato_data, names = c("medium", "big"), ylab = "Flavor Score", xlab = "Size")
+abline(h = overall_mean_flavor, col = "red", lty = 2)
+
+boxplot(Flavor ~ Storage_period, data = potato_data, names = c("0", "2", "4", "6"), ylab = "Flavor Score", xlab = "Storage Period (in months)")
+abline(h = overall_mean_flavor, col = "red", lty = 2)
+
+overall_median_flavor <- median(potato_data$Flavor)
+
+cooking_methods_names = c("Boil", "Steam", "Mash", "Bake 350F", "Bake 450F")
+
+boxplot(Flavor ~ Cooking_Method, data = potato_data, names = cooking_methods_names, ylab = "Flavor Score", xlab = "Cooking Method")
+abline(h = overall_median_flavor, col = "red", lty = 2)
+
+layout(matrix(1:1, nrow = 1, byrow = TRUE)) #Retour à un seul plot
+
+
+interaction.plot(potato_data$Storage_period, potato_data$Cooking_Method, potato_data$Flavor,trace.label = "Cooking Method", xlab = "Storage Period (Month)", ylab = "Flavor Score")
+```
+
+# Model selection using Stepwise AIC
+
+```{r}
+# Load necessary package
+library(MASS)
+
+# Fit a full model using all predictors
+full_model <- lm(Flavor ~ Growing_Area + Temperature + Size + Storage_period + Cooking_Method + Growing_Area*Temperature + Growing_Area*Size + Growing_Area*Storage_period + Growing_Area*Cooking_Method + Temperature*Size + Temperature*Storage_period + Temperature*Cooking_Method + Size*Storage_period + Size*Cooking_Method + Storage_period*Cooking_Method, data = potato_data)
+
+# Perform stepwise model selection using AIC
+stepwise_model <- stepAIC(full_model, direction = "both")
+
+# Display the summary of the selected model
+summary(stepwise_model)
+```
+
+# ANOVA model
+
+```{r}
+# Perform ANOVA for the selected model
+anova_result <- anova(stepwise_model)
+
+# Print the ANOVA table
+print(anova_result)
+
+# Plot ANOVA results
+plot(anova_result)
+```
+# Residuals plots
+
+```{r}
+# Set up a 1x2 grid for plotting
+par(mfrow = c(1, 2))
+
+# Obtain standardized residuals
+std_residuals <- rstandard(stepwise_model)
+
+# Plot QQ plot
+qqnorm(std_residuals)
+qqline(std_residuals)
+
+# Plot residual plot
+plot(stepwise_model, which = 1)  # which = 1 for residuals vs. fitted values
+
+# Reset par settings to default (optional)
+par(mfrow = c(1, 1))
+
+# Save the plot to a file (PDF example)
+pdf("QQ_Residual_Plot.jpg")
+par(mfrow = c(1, 2))  # Ensure the layout remains 1x2 for saving
+qqnorm(std_residuals)
+qqline(std_residuals)
+plot(stepwise_model, which = 1)
+dev.off()  # Close the PDF device
+
+```
+
